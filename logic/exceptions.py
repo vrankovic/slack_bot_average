@@ -1,0 +1,2 @@
+class NoConfFile(Exception):
+    pass
