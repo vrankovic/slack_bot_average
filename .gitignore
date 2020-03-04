@@ -1,0 +1,6 @@
+plugins/rtmbot.conf
+.idea/
+__pycache__/
+rtmbot.log
+venv/
+.DS_Store
