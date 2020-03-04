@@ -10,7 +10,7 @@ class myJob(Job):
     def run(self, slack_client):
         sb_logic = SlackBotLogic(path_conf_file, slack_client)
         return_list = []
-        for channel_id, return_message in sb_logic.create_pub_average_message():
+        for channel_id, return_message in sb_logic.create_msg_for_avrg_nums_public():
             if return_message:
                 return_list.append([channel_id, return_message])
 
