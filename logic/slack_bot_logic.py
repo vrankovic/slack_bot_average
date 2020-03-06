@@ -11,8 +11,11 @@ from constants import path_conf_file
 
 class SlackBotLogic:
 
-    @check_path_exists_decorator
     def __init__(self, file_path, slack_client=None):
+        self._create_slack_client(file_path, slack_client)
+
+    @check_path_exists_decorator
+    def _create_slack_client(self, file_path, slack_client=None):
         if slack_client:
             self.slack_client = slack_client
         else:
@@ -24,48 +27,48 @@ class SlackBotLogic:
         """
 
         """
-        suma = 0.0
+        summ = 0.0
         count = 0
         for msg in self.get_channel_messages(channel):
             for num in self.check_data_is_num(msg):
-                suma += num
+                summ += num
                 count += 1
         if count == 0:
             raise NoNumbers
-        average = round(suma / count, 2)
+        average = round(summ / count, 2)
         return average
 
     def get_average_for_user(self, username):
         """
 
         """
-        suma = 0.0
+        summ = 0.0
         count = 0
         user_id = self.get_user_id_by_username(username)
         for channel_id in self.get_channels_user_is_in(user_id):
             for msg in self.get_channel_msgs_for_user(channel_id, user_id):
                 for num in self.check_data_is_num(msg):
-                    suma += num
+                    summ += num
                     count += 1
         if count == 0:
             raise NoNumbers
-        average = round(suma / count, 2)
+        average = round(summ / count, 2)
         return average
 
     def get_average_of_all_public(self):
         """
 
         """
-        suma = 0.0
+        summ = 0.0
         count = 0
         for channel_id in self.get_public_channels_bot_is_in():
             for msg in self.get_channel_messages(channel_id):
                 for num in self.check_data_is_num(msg):
-                    suma += num
+                    summ += num
                     count += 1
         if count == 0:
             raise NoNumbers
-        average = round(suma / count, 2)
+        average = round(summ / count, 2)
         return average
 
     def get_public_channels_bot_is_in(self):
