@@ -4,3 +4,5 @@ __pycache__/
 rtmbot.log
 venv/
 .DS_Store
+logic/__pycache__
+tests/__pycache__
