@@ -238,8 +238,6 @@ class SlackBotLogic:
                            f"raised Error in api method call: {raising_object['error']}")
 
 
-
-
 # sb = SlackBotLogic(path_conf_file)
 # sb.test()
 # print(sb.get_average_of_all_public())
