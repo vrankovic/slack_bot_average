@@ -23,7 +23,7 @@ class InstantChannelAverage(Plugin):
                 print(ae)
 
     def process_message(self, data):
-        channel_id = data['channel']
+        channel_id = data.get('channel')
         sb_logic = SlackBotLogic(path_conf_file)
         return_message = self.create_dmc_average_message(sb_logic, channel_id)
         self.outputs.append(
