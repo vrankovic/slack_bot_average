@@ -140,7 +140,7 @@ class SlackBotLogic:
         in last minute.
         """
         now_in_timestamp = datetime.timestamp(datetime.now())
-        min_before = datetime.now() - timedelta(seconds=10)
+        min_before = datetime.now() - timedelta(seconds=60)
         min_before_in_timestamp = datetime.timestamp(min_before)
         history = self.slack_client.api_call('conversations.history', channel=channel_id, latest=now_in_timestamp,
                                              oldest=min_before_in_timestamp)

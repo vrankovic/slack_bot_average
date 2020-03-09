@@ -39,5 +39,5 @@ class MyJob(Job):
 
 class CollectTotalAverage(Plugin):
     def register_jobs(self):
-        job = MyJob(2)
+        job = MyJob(60)
         self.jobs.append(job)
