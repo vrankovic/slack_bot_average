@@ -17,5 +17,4 @@ if __name__ == '__main__':
         bot = RtmBot(conf)
         bot.start()
     except NoConfFile:
-        raise NoConfFile('There is no configuration file at the provided path. '
-                         'Please check if the path you provided is correct.')
+        raise NoConfFile('There is no configuration file at the provided path.')

@@ -9,7 +9,7 @@ class InstantChannelAverage(Plugin):
 
     def create_dmc_average_message(self, sb_logic, channel_id):
         """
-
+        Method which returns message that contains the average of numbers of channel with id 'channel_id'
         """
         if sb_logic.is_dm_channel(channel_id):
             try:
@@ -20,7 +20,8 @@ class InstantChannelAverage(Plugin):
                 return_message = f'Messages in this channel does not contain numbers that can be parsed.'
                 return return_message
             except ApiError as ae:
-                print(ae)
+                return_message = f'ERROR: {ae}'
+                return return_message
 
     def process_message(self, data):
         channel_id = data.get('channel')

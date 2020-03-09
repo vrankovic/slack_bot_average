@@ -10,7 +10,8 @@ class MyJob(Job):
 
     def create_msg_for_avrg_nums_public(self, sb_logic):
         """
-
+        Method which returns key: value pairs of channel_id: message that contains the average
+        of numbers of public channels
         """
         try:
             for channel_id in sb_logic.get_public_channels_bot_is_in():
@@ -32,9 +33,6 @@ class MyJob(Job):
         for channel_id, return_message in self.create_msg_for_avrg_nums_public(sb_logic):
             if return_message:
                 return_list.append([channel_id, return_message])
-
-        print(return_list)
-
         if return_list:
             return return_list
 

@@ -86,7 +86,7 @@ class SlackBotLogic:
         """
         bot_id = self.get_bot_id()
         public_channels_response = self.slack_client.api_call('conversations.list', types='public_channel')
-        self.raise_api_exception(public_channels_response, 'conversations.list',
+        self.validate_api_response(public_channels_response, 'conversations.list',
                                  'get_public_channels_bot_is_in(self)')
 
         public_channels = public_channels_response.get('channels')
@@ -100,7 +100,7 @@ class SlackBotLogic:
         condition that message is not received by bot
         """
         history = self.slack_client.api_call('conversations.history', channel=channel_id)
-        self.raise_api_exception(history, 'conversations.history',
+        self.validate_api_response(history, 'conversations.history',
                                  'get_channel_messages(self, channel_id)')
         has_more = True
         while has_more:
@@ -111,7 +111,7 @@ class SlackBotLogic:
             if has_more:
                 next_cursor = history.get('response_metadata').get('next_cursor')
                 history = self.slack_client.api_call('conversations.history', channel=channel_id, cursor=next_cursor)
-                self.raise_api_exception(history, 'conversations.history',
+                self.validate_api_response(history, 'conversations.history',
                                          'get_channel_messages(self, channel_id)')
 
     def get_channel_msgs_for_user(self, channel_id, user_id):
@@ -120,7 +120,7 @@ class SlackBotLogic:
         wrote in the channel with id 'channel_id'
         """
         history = self.slack_client.api_call('conversations.history', channel=channel_id)
-        self.raise_api_exception(history, 'conversations.history',
+        self.validate_api_response(history, 'conversations.history',
                                  'get_channel_msgs_for_user(self, channel_id, user_id)')
         has_more = True
         while has_more:
@@ -131,7 +131,7 @@ class SlackBotLogic:
             if has_more:
                 next_cursor = history.get('response_metadata').get('next_cursor')
                 history = self.slack_client.api_call('conversations.history', channel=channel_id, cursor=next_cursor)
-                self.raise_api_exception(history, 'conversations.history',
+                self.validate_api_response(history, 'conversations.history',
                                          'get_channel_msgs_for_user(self, channel_id, user_id)')
 
     def check_new_channel_messages_last_min(self, channel_id):
@@ -144,30 +144,39 @@ class SlackBotLogic:
         min_before_in_timestamp = datetime.timestamp(min_before)
         history = self.slack_client.api_call('conversations.history', channel=channel_id, latest=now_in_timestamp,
                                              oldest=min_before_in_timestamp)
-        self.raise_api_exception(history, 'conversations.history',
+        self.validate_api_response(history, 'conversations.history',
                                  'check_new_channel_messages_last_min(self, channel_id)')
-        for msg in history.get('messages'):
-            if 'client_msg_id' in msg:
-                return True
+        has_more = True
+        while has_more:
+            for msg in history.get('messages'):
+                if 'client_msg_id' in msg:
+                    return True
+            has_more = history.get('has_more')
+            if has_more:
+                next_cursor = history.get('response_metadata').get('next_cursor')
+                history = self.slack_client.api_call('conversations.history', channel=channel_id,
+                                                     cursor=next_cursor, latest=now_in_timestamp, oldest=min_before_in_timestamp)
+                self.validate_api_response(history, 'conversations.history',
+                                           'check_new_channel_messages_last_min(self, channel_id)')
         return False
 
-    def is_channel_private(self, channel):
+    def is_channel_private(self, channel_id):
         """
         Method which checks if the channel is private channel
         """
-        channel_info = self.slack_client.api_call("conversations.info", channel=channel)
-        self.raise_api_exception(channel_info, 'conversations.info',
-                                 'is_channel_private(self, channel)')
+        channel_info = self.slack_client.api_call("conversations.info", channel=channel_id)
+        self.validate_api_response(channel_info, 'conversations.info',
+                                 'is_channel_private(self, channel_id)')
         if 'is_private' in channel_info.get('channel'):
             return channel_info.get('channel').get('is_private')
 
-    def is_dm_channel(self, channel):
+    def is_dm_channel(self, channel_id):
         """
         Method which checks if the channel is direct message channel
         """
-        channel_info = self.slack_client.api_call("conversations.info", channel=channel)
-        self.raise_api_exception(channel_info, 'conversations.info',
-                                 'is_dm_channel(self, channel)')
+        channel_info = self.slack_client.api_call("conversations.info", channel=channel_id)
+        self.validate_api_response(channel_info, 'conversations.info',
+                                 'is_dm_channel(self, channel_id)')
         return channel_info.get('channel').get('is_im')
 
     def get_dm_channels(self):
@@ -180,7 +189,7 @@ class SlackBotLogic:
         all objects in portions of 100 objects per page.
         """
         dm_channels = self.slack_client.api_call('conversations.list', types='im')
-        self.raise_api_exception(dm_channels, 'conversations.list',
+        self.validate_api_response(dm_channels, 'conversations.list',
                                  'get_dm_channels(self)')
         has_more = True
         while has_more:
@@ -190,7 +199,7 @@ class SlackBotLogic:
             if has_more:
                 next_cursor = dm_channels.get('response_metadata').get('next_cursor')
                 dm_channels = self.slack_client.api_call('conversations.list', types='im', cursor=next_cursor)
-                self.raise_api_exception(dm_channels, 'conversations.list',
+                self.validate_api_response(dm_channels, 'conversations.list',
                                          'get_dm_channels(self)')
 
     def check_data_is_num(self, data):
@@ -212,7 +221,7 @@ class SlackBotLogic:
         Method which returns user id of Slack Bot
         """
         auth_test = self.slack_client.api_call('auth.test')
-        self.raise_api_exception(auth_test, 'auth.test',
+        self.validate_api_response(auth_test, 'auth.test',
                                  'get_bot_id(self)')
         bot_id = auth_test.get('user_id')
         return bot_id
@@ -223,8 +232,9 @@ class SlackBotLogic:
         with id 'channel_id'
         """
         members_response = self.slack_client.api_call('conversations.members', channel=channel_id)
-        self.raise_api_exception(members_response, 'conversations.members',
+        self.validate_api_response(members_response, 'conversations.members',
                                  'check_member_in_channel(self, channel_id, member_id)')
+
         channel_members = members_response.get('members')
         return member_id in channel_members
 
@@ -234,7 +244,7 @@ class SlackBotLogic:
         username NoUserWithUsername exception is raised.
         """
         users_list_response = self.slack_client.api_call('users.list')
-        self.raise_api_exception(users_list_response, 'users.list',
+        self.validate_api_response(users_list_response, 'users.list',
                                  'get_user_id_by_username(self, username)')
         list_of_users = users_list_response.get('members')
         for user in list_of_users:
@@ -249,12 +259,12 @@ class SlackBotLogic:
          with id 'user_id' is member.
         """
         conversation_list_response = self.slack_client.api_call('conversations.list')
-        self.raise_api_exception(conversation_list_response, 'conversations.list',
+        self.validate_api_response(conversation_list_response, 'conversations.list',
                                  'get_channels_user_is_in(self, user_id)')
         channels = conversation_list_response.get('channels')
 
         dm_conversation_list_response = self.slack_client.api_call('conversations.list', types='im')
-        self.raise_api_exception(dm_conversation_list_response, 'conversations.list',
+        self.validate_api_response(dm_conversation_list_response, 'conversations.list',
                                  'get_channels_user_is_in(self, user_id)')
         channels.extend(dm_conversation_list_response.get('channels'))
 
@@ -262,7 +272,7 @@ class SlackBotLogic:
             if self.check_member_in_channel(channel.get('id'), user_id):
                 yield channel.get('id')
 
-    def raise_api_exception(self, raising_object, api_method, raising_method):
+    def validate_api_response(self, raising_object, api_method, raising_method):
         """
         Typical response after api call contains key/value pair "ok": True or "ok": False.
         If value is False, it means that an error occurred and the error message is stored as
@@ -272,31 +282,3 @@ class SlackBotLogic:
         if not raising_object.get('ok'):
             raise ApiError(f"In the function logic.slack_bot_logic.{raising_method} for api method '{api_method}' "
                            f"response contains Error: {raising_object.get('error')}")
-
-
-# sb = SlackBotLogic(path_conf_file)
-# sb.test()
-# print(sb.get_average_of_all_public())
-# print(sb.get_average_for_user('ivanczv'))
-# for msg in sb.get_chnl_msgs(sb.get_all_dm_channels()[1]['id']):
-#     print(msg)
-# print(sb.get_all_dm_channels())
-#
-# try:
-#     sb = SlackClient('xoxb-972451774343-970138762340-WkzKa1JpAWBUWkKLpdMywrNz')
-#     test = sb.api_call('users.identity')
-#     if not test['ok']:
-#         raise ApiError(f"Error in api method call: {test['error']}")
-# except ApiError as ae:
-#     print(ae)
-#
-# print(sb.check_new_chnl_msgs_last_min('DULDC3L79'))
-#
-# for msg in sb.get_chnl_msgs('DULDC3L79'):
-#     for elem in sb.check_data_is_num(msg):
-#         print(elem)
-
-# print(slach_bot.api_call('chat.postMessage', channel='DULDC3L79', text='stefan test'))
-# print(slach_bot.api_call('conversations.list', types='public_channel')['channels'])
-# for chnl_id in sb.get_pblic_chnls_bot_is_in():
-#     print(chnl_id)
