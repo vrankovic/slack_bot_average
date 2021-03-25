@@ -14,7 +14,7 @@ pluggy==0.13.1
 py==1.8.1
 pyparsing==2.4.6
 pytest==5.3.5
-PyYAML==3.13
+PyYAML==5.4
 requests==2.23.0
 rtmbot==0.4.1
 six==1.14.0
